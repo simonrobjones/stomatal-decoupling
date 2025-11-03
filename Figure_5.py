@@ -29,7 +29,7 @@ re_calc_loess = False
 # (https://doi.org/10.1111/nph.19558)
 # =============================================================================
 file_name = 'nph19558-sup-0002-tables2.xlsx'
-file_path = 'C:/Users/srgj201/OneDrive - University of Exeter/Documents/Postdoc/SOX/High_T_decoupling/'
+file_path = 'path_to_obs_data/' # Change to the path where you save the observations
 df        = pd.read_excel(file_path+file_name, sheet_name = 'Table S2')
 
 # Create list of plant species to use
@@ -505,3 +505,4 @@ for model in ['LTO','LT','AT']:
         NMRSE_mean = np.mean([NRMSE_values[model][s][var] for s in plant_species])
         print('%s %s: %s'%(model,var,NMRSE_mean))
         
+
