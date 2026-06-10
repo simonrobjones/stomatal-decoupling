@@ -1,68 +1,153 @@
 # -*- coding: utf-8 -*-
 """
-Code to produce Figure S3 of Jones et al
+Code to produce figure S3 of Jones et al
 @author: srgj201
 """
-
-import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 import numpy as np
-from PGEN_functions import numerical_solve_LTO, numerical_solve_LT, numerical_solve_AT
-from PGEN_functions import namelist, physical_constants
-from PGEN_functions import calc_esat_from_T
+import matplotlib.pyplot as plt
+import pandas as pd
+from os import listdir
+import matplotlib.markers as mmarkers
+from matplotlib.lines import Line2D
+from sklearn.metrics import r2_score
+import string
+import math
+from loess import loess_1d
+from tqdm import tqdm
+import seaborn as sns
+import matplotlib.gridspec as gridspec
+from matplotlib.patches import Patch
 
-# =============================================================================
-# Set up environmental conditions
-# =============================================================================
-nl   = namelist()               # Class containing all model parameters
-pc   = physical_constants()     # Class containing all physical constants
-N    = 50                       # Number of temperature points to plot
-
-ca   = 40.0                     # Atmospheric CO2 partial pressure (Pa)
-swp  = -0.1                     # Soil water potential             (MPa)
-pa   = 101325.0                 # Atmospheric pressure             (Pa)
-oa   = 20900.0                  # Atmospheric O2 partial pressure  (Pa)
-Is   = 500.0                    # Absorbed shortwave radiation     (Wm-2)
-ra   = 10.0                     # Aerodymaic resistance            (s m-1)
-vpd  = 1000.0                   # Atmospheric vapour pressure      (Pa)
-Ta   = np.linspace(10.0,45.0,N) # Atmospheric Temperature          (C)
-
-# Set up empty arrays to store calculated photosynthesis, stomatal conductance, ci, and leaf temperature
-A_LTO = np.zeros(N)
-A_LT  = np.zeros(N)
-A_AT  = np.zeros(N)
-
-gs_LTO = np.zeros(N)
-gs_LT  = np.zeros(N)
-gs_AT  = np.zeros(N)
-
-ci_LTO = np.zeros(N)
-ci_LT  = np.zeros(N)
-ci_AT  = np.zeros(N)
-
-Tl_LTO = np.zeros(N)
-Tl_LT  = np.zeros(N)
-Tl_AT  = np.zeros(N)
-
-# =============================================================================
-# Calculate optimum
-# =============================================================================
-# Iterate through the atmospheric temperature (and vpd) values and calculate optima
-for i in range(len(Ta)):
-    A_LTO[i], gs_LTO[i], ci_LTO[i], Tl_LTO[i] = numerical_solve_LTO( nl, pc, Ta[i], ca, pa, oa, Is, ra, vpd, swp)
-    A_LT[i], gs_LT[i], ci_LT[i], Tl_LT[i]     = numerical_solve_LT( nl, pc, Ta[i], ca, pa, oa, Is, ra, vpd, swp)
-    A_AT[i], gs_AT[i], ci_AT[i], Tl_AT[i]     = numerical_solve_AT( nl, pc, Ta[i], ca, pa, oa, Is, ra, vpd, swp)
+plt.style.use('ggplot')
+path = 'C:/Users/srgj201/OneDrive - University of Exeter/Documents/Postdoc/SOX/High_T_decoupling/Jones et al 25/Code/Revised code/GCB submission/Modelling_results/'
 
 
-# =============================================================================
-# Figure
-# =============================================================================
-fig,axs = plt.subplots(nrows = 2,ncols = 2,figsize = (18,11))
-plt.subplots_adjust(wspace = 0.2,hspace = 0.25)
-if type(axs) == np.ndarray:
-    axs = axs.reshape(-1)
-else:
-    axs = [axs]
+ 
+data_labels = {
+'Diao24_Fagus sylvatica_out.csv' : '$\it{F.\ sylvatica}$', 
+'Diao24_Picea abies_out.csv' : '$\it{P.\ abies}$', 
+'Diao24_Quercus petraea_out.csv' : '$\it{Q.\ petraea}$', 
+'Diao24_Tilia cordata_out.csv' : '$\it{T.\ cordata}$', 
+'Feng23_cccontrol_out.csv' : '$\it{C.\ arborescens}$ \n (ww)', 
+'Feng23_ccdry_out.csv' : '$\it{C.\ arborescens}$ \n (d)', 
+'Feng23_hacontrol_out.csv' : '$\it{H.\ ammodendron}$ \n (ww)', 
+'Feng23_hadry_out.csv' : '$\it{H.\ ammodendron}$ \n (d)', 
+'Slot16_Calophyllum longifolium_out.csv' : '$\it{C.\ longifolium}$', 
+'Slot16_Ficus insipida_out.csv' : '$\it{F.\ insipida}$', 
+'Slot16_Ochroma_out.csv' : '$\it{O.\ pyramdidale}$', 
+'SlotWinter24_Adelphia platyrachis_out.csv' : '$\it{A. platyrachis}$', 
+'SlotWinter24_Amphilophium paniculatum_out.csv' : '$\it{A.\ paniculatum}$', 
+'SlotWinter24_Astronium graveolens_out.csv' : '$\it{A.\ graveolens}$', 
+'SlotWinter24_Bonamia trichantha_out.csv' : '$\it{B.\ trichantha}$', 
+'SlotWinter24_Brosimum utile_out.csv' : '$\it{B.\ utile}$', 
+'SlotWinter24_Cecropia peltata_out.csv' : '$\it{C.\ peltata}$', 
+'SlotWinter24_Cordia bicolor_out.csv' : '$\it{C.\ bicolor}$', 
+'SlotWinter24_Doliocarpus major_out.csv' : '$\it{D.\ major}$', 
+'SlotWinter24_Doliocarpus major_out.csv' : '$\it{D.\ major}$', 
+'SlotWinter24_Garcinia madruno_out.csv' : '$\it{G.\ madruno}$', 
+'SlotWinter24_Guatteria dumetorum_out.csv' : '$\it{G.\ dumetorum}$', 
+'SlotWinter24_Heisteria scandens_out.csv' : '$\it{H.\ scandens}$', 
+'SlotWinter24_Luehea seemannii_out.csv' : '$\it{L.\ seemannii}$', 
+'SlotWinter24_Passiflora vitifolia_out.csv' : '$\it{P.\ vitifolia}$', 
+'SlotWinter24_Serjania mexicana_out.csv' : '$\it{S.\ mexicana}$', 
+'SlotWinter24_Spondias mombin_out.csv' : '$\it{S.\ mombin}$', 
+'SlotWinter24_Tocoyena pittieri_out.csv' : '$\it{T.\ pittieri}$', 
+'SlotWinter24_Vantanea depleta_out.csv' : '$\it{V.\ depleta}$', 
+'SlotWinter24_Aristolochia tonduzii_out.csv' : '$\it{A. tonduzzi}$',
+'SlotWinter24_Carapa guianensis_out.csv' : '$\it{C. guiamemsis}$',
+'SlotWinter24_Manilkara bidentata_out.csv' : '$\it{M. bidentata}$', 
+'SlotWinter24_Miconia\xa0minutiflora_out.csv' : '$\it{M. minutiflora}$', 
+'SlotWinter24_Nectandra\xa0cuspidata_out.csv' : '$\it{N. cuspidata}$', 
+'SlotWinter24_Schefflera\xa0morototoni_out.csv' : '$\it{S. morototoni}$', 
+'SlotWinter24_Virola multiflora_out.csv':'$\it{V. multiflora}$',
+'TaylorND_Clethra fagifolia_out.csv' : '$\it{C.\ fagifolia}$', 
+'TaylorND_Guatteria goudotiana_out.csv' : '$\it{G.\ goudotiana}$', 
+'TaylorND_Ilex laurina_out.csv' : '$\it{I.\ laurina}$', 
+'Urban17_loblolly_dry_out.csv' : '$\it{P.\ taeda}$ \n (d)', 
+'Urban17_loblolly_wet_out.csv' : '$\it{P.\ taeda}$ \n (ww)', 
+'Urban17_loblolly_wet_co2_out.csv' : '$\it{P.\ taeda}$ \n (ww eCO$_2$)', 
+'Urban17_poplar_dry_out.csv' : '$\it{P.\ deltoides}$ \n (d)', 
+'Urban17_poplar_wet_out.csv' : '$\it{P.\ deltoides}$ \n (ww)', 
+'Urban17_poplar_wet_co2_out.csv' : '$\it{P.\ deltoides}$ \n (ww eCO$_2$)'
+}
+
+file_names = listdir( path )
+
+model_colors = {'LTO':'#FFB000',
+               'LT':'#DC267F',
+               'AT':'#648FFF'}
+
+y_labels = { 'A':'A ($\mu$ $mol m^{-2}$ $s^{-1}$)',
+             'gsc':'g$_{sc}$ (mol $m^{-2}$ $s^{-1}$)',
+             'ci':'c$_{i}$ (Pa)',
+             'dT':'dT ($^oC$)'}
+
+nrows = math.ceil(len(file_names)/2)
+ncols = 10
+fig = plt.figure(figsize=(45, 2 * nrows))
+gs = gridspec.GridSpec(
+    nrows, ncols,
+    width_ratios=[1.0,1,1,1,1,1.0,1,1,1,1],
+    wspace = 0.4,
+    hspace = 0.2
+)
+
+axs = np.empty((nrows, ncols), dtype = object)
+
+for i in range(nrows):
+    ax = fig.add_subplot(gs[i,0])
+    axs[i,0] = ax
+    ax.axis("off")
+    
+    
+
+for i,f in enumerate(file_names):
+    df = pd.read_csv( path + f, header = [0,1] )
+    df = df.sort_values(by = ('Ta','obs'))
+    
+    Ta = df.loc[:,('Ta','obs')]
+    
+    for j,var in enumerate(['A','gsc','ci','dT']):
+        
+        if i == 0 and j== 1:
+            ax = fig.add_subplot( gs[ i % nrows, j + (i//nrows) * 5 + 1 ])
+            axs[i%nrows, j + (i//nrows)*5] = ax
+            
+        else:
+            ax = fig.add_subplot(gs[ i%nrows, j + (i//nrows)*5 + 1], sharex = axs[0,1])
+        if i%nrows == 0:
+            ax.text(0.5,1.2, y_labels[var], size = 25, transform = ax.transAxes, ha = 'center')
+        if var == 'A':
+            mod_fac = 1e6
+            order   = 2
+        else:
+            order   = 3
+            mod_fac = 1
+        obs = df.loc[:,(var,'obs')]
+        sns.regplot(x=Ta, y = obs, order = order, ax = ax, color = 'black', scatter_kws={'facecolor':'none'}, label = 'Observations')#, ci = 100)
+        
+        for k, model in enumerate(['LT','LTO']):
+            mod = df.loc[:,(var,model)] * mod_fac
+            ax.scatter( Ta, mod,  color = model_colors[model], label = model)
+        
+
+        ax.set_ylabel( '' )   
+        if i%nrows != nrows - 1:
+            ax.tick_params(axis='x', labelbottom=False)
+            ax.set_xlabel('')
+        else:
+            ax.set_xlabel('Ta ($^o$C)',size = 25)
+           
+
+for i in range(nrows):
+    ax = fig.add_subplot(gs[i,5])
+    axs[i,5] = ax
+    ax.axis("off")
+
+for i,f in enumerate(file_names):
+    
+    ax = axs[i%nrows,5*(i//nrows)]
+    ax.text(-0.,0.5,data_labels[f], transform = ax.transAxes, ha = 'left', size = 24)
 
 line_colors = {'LTO':'#FFB000',
                'LT':'#DC267F',
@@ -71,62 +156,13 @@ line_labels = {'LTO':'Leaf Temperature within Optimisation (LTO)',
                'LT':'Leaf Temperature (LT)',
                'AT':'Air Temperature (AT)'}
     
-line_style = 'none'
-plot_schemes = ['LTO','LT','AT']
-custom_lines  = [Line2D([], [], color = line_colors[scheme], ls = line_style, marker = 'o' , markerfacecolor = 'none') for scheme in plot_schemes]
-fig.legend(custom_lines,[line_labels[s] for s in plot_schemes],loc = 'upper center',bbox_to_anchor = (0.5,0.05), fontsize = 12, ncol = len(plot_schemes))
+handles, labels = axs[0,1].get_legend_handles_labels()
 
+handles = [(Patch(facecolor = 'black',alpha = 0.2),Line2D([0], [0], color = 'black',lw = 1.0))] + handles
+labels  = ['Polynomial fit'] + labels
+fig.legend(handles, labels, markerscale=3,
+           loc = 'upper center', bbox_to_anchor = (0.5,0.06), fontsize = 30, ncol = 4)
 
-
-# Photosynthesis
-axs[0].plot( Ta, 1e6 * A_LTO, color = line_colors['LTO'],
-            ls = line_style, marker = 'o', markerfacecolor = 'none' )
-axs[0].plot( Ta, 1e6 * A_LT, color = line_colors['LT'],
-             ls = line_style, marker = 'o', markerfacecolor = 'none' )
-axs[0].plot( Ta, 1e6 * A_AT, color = line_colors['AT'],
-            ls = line_style, marker = 'o', markerfacecolor = 'none' )
-axs[0].axhline( 0, color = 'black', lw = 1.0 )
-axs[0].set_ylabel('$A$ ($\mu$mol/m$^2$/s)',size = 15)
-axs[0].set_xlabel('Atmospheric Temperature ($\degree$C)',size = 15)
-axs[0].text( 0.01, 0.98, '(a)', transform = axs[0].transAxes, 
-            ha = 'left', va = 'top', size = 12)
-
-# Stomatal conductance
-axs[1].plot( Ta, gs_LTO, color = line_colors['LTO'], 
-             ls = line_style, marker = 'o', markerfacecolor = 'none' )
-axs[1].plot( Ta, gs_LT, color = line_colors['LT'], 
-             ls = line_style, marker = 'o', markerfacecolor = 'none' )
-axs[1].plot( Ta, gs_AT, color = line_colors['AT'], 
-              ls = line_style, marker = 'o', markerfacecolor = 'none' )
-axs[1].axhline( 0, color = 'black', lw = 1.0 )
-axs[1].set_ylabel('$g_{sc}$ (mol/m$^2$/s)',size = 15)
-axs[1].set_xlabel( 'Atmospheric Temperature ($\degree$C)', size = 15 )
-axs[1].text( 0.01, 0.98, '(b)', transform = axs[1].transAxes, 
-             ha = 'left', va = 'top', size = 12 )
-
-# dT
-axs[2].plot( Ta, Tl_LTO - Ta, line_colors['LTO'],
-             ls = line_style, marker = 'o', markerfacecolor = 'none' )
-axs[2].plot( Ta, Tl_LT - Ta, line_colors['LT'],
-             ls = line_style, marker = 'o', markerfacecolor = 'none' )
-axs[2].plot( Ta, Tl_AT - Ta, line_colors['AT'],
-             ls = line_style, marker = 'o', markerfacecolor = 'none' )
-axs[2].set_ylabel('$T_{l}-T_{a}$ ($\degree$C)',size = 15)
-axs[2].set_xlabel( 'Atmospheric Temperature ($\degree$C)', size = 15 )
-axs[2].text( 0.01, 0.98, '(c)', transform = axs[2].transAxes, 
-             ha = 'left', va = 'top', size = 12 )
-
-# ci
-axs[3].plot( Ta, ci_LTO, line_colors['LTO'],
-             ls = line_style, marker = 'o', markerfacecolor = 'none' )
-axs[3].plot( Ta, ci_LT, line_colors['LT'],
-             ls = line_style, marker = 'o', markerfacecolor = 'none' )
-axs[3].plot( Ta, ci_AT, line_colors['AT'],
-             ls = line_style, marker = 'o', markerfacecolor = 'none' )
-axs[3].set_ylabel('C$_i$ (Pa)',size = 15)
-axs[3].set_xlabel( 'Atmospheric Temperature ($\degree$C)', size = 15 )
-axs[3].text( 0.01, 0.98, '(d)', transform = axs[3].transAxes, 
-             ha = 'left', va = 'top', size = 12 )
-
-fig.savefig('Figures/Figure_S3.jpg', dpi = 300,  bbox_inches = 'tight')
-
+#%%
+Fig_path = 'C:/Users/srgj201/OneDrive - University of Exeter/Documents/Postdoc/SOX/High_T_decoupling/Jones et al 25/Figures/Revision_2/'
+fig.savefig(Fig_path + 'Fig_S4.jpg',dpi = 300, bbox_inches = 'tight')
