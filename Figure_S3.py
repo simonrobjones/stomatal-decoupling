@@ -19,7 +19,8 @@ import matplotlib.gridspec as gridspec
 from matplotlib.patches import Patch
 
 plt.style.use('ggplot')
-path = 'C:/Users/srgj201/OneDrive - University of Exeter/Documents/Postdoc/SOX/High_T_decoupling/Jones et al 25/Code/Revised code/GCB submission/Modelling_results/'
+path = 'Modelling_results/'
+Fig_path = 'Figures/'
 
 
  
@@ -163,6 +164,4 @@ labels  = ['Polynomial fit'] + labels
 fig.legend(handles, labels, markerscale=3,
            loc = 'upper center', bbox_to_anchor = (0.5,0.06), fontsize = 30, ncol = 4)
 
-#%%
-Fig_path = 'C:/Users/srgj201/OneDrive - University of Exeter/Documents/Postdoc/SOX/High_T_decoupling/Jones et al 25/Figures/Revision_2/'
 fig.savefig(Fig_path + 'Fig_S4.jpg',dpi = 300, bbox_inches = 'tight')
