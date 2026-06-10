@@ -6,9 +6,10 @@ Code to produce Figure 3 of Jones et al
 
 import matplotlib.pyplot as plt
 import numpy as np
-from PGEN_functions import numerical_solve_LTO, numerical_solve_LT, numerical_solve_AT
-from PGEN_functions import namelist, physical_constants
-from PGEN_functions import calc_esat_from_T
+from PGEN_functions_complete import numerical_solve_LTO, numerical_solve_LT, numerical_solve_AT
+from PGEN_functions_complete import namelist, physical_constants
+from PGEN_functions_complete import calc_esat_from_T
+Fig_path = 'Figures/'
 
 # =============================================================================
 # Set up environmental conditions
@@ -23,8 +24,8 @@ pa   = 101325.0                 # Atmospheric pressure             (Pa)
 oa   = 20900.0                  # Atmospheric O2 partial pressure  (Pa)
 Is   = 500                      # Absorbed shortwave radiation     (Wm-2)
 ra   = 10                       # Aerodymaic resistance            (s m-1)
-ea   = 1000                     # Atmospheric vapour pressure      (Pa)
-Ta   = np.linspace(10.0,45.0,N) # Atmospheric Temperature          (C)
+ea   = 500                      # Atmospheric vapour pressure      (Pa)
+Ta   = np.linspace(10.0,50.0,N) # Atmospheric Temperature          (C)
 
 # The model takes VPD as an input so calculate the VPD from Ta and ea
 esat     = calc_esat_from_T( Ta ) # Saturated vapour pressure      (Pa)
@@ -57,6 +58,7 @@ for i in range(len(Ta)):
     A_AT[i], gs_AT[i], ci_AT[i], Tl_AT[i]     = numerical_solve_AT( nl, pc, Ta[i], ca, pa, oa, Is, ra, vpd[i], swp)
 
 
+
 fig,axs = plt.subplots(nrows = 1,ncols = 3,figsize = (20,4),sharey = True)
 plt.subplots_adjust(wspace = 0.02,hspace = 0.25)
 if type(axs) == np.ndarray:
@@ -84,4 +86,4 @@ cbar_ax = fig.add_axes([0.15, -0.15, 0.7, 0.06])
 cbar = plt.colorbar(im, cax = cbar_ax, orientation = 'horizontal')    
 cbar.set_label('Atmospheric temperature ($\degree C$)',size = 15)
 
-fig.savefig('Figures/Figure_3.jpg', dpi = 300, bbox_inches = 'tight')
+fig.savefig(Fig_path + 'Figure_3.jpg', dpi = 300, bbox_inches = 'tight')
