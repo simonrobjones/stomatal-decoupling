@@ -19,9 +19,9 @@ from matplotlib.transforms import Bbox
 # =============================================================================
 # Load in data. Data available on request at https://doi.org/10.1111/nph.19558
 # =============================================================================
-file_name = 'nph19558-sup-0002-tables2.xlsx'
+file_name = 'Diao_24_raw.csv'
 file_path = ''
-df        = pd.read_excel(file_path+file_name, sheet_name = 'Table S2')
+df        = pd.read_csv(file_path+file_name)
 unique_species = df['Species'].unique()
 
 # =============================================================================
