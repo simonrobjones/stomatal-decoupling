@@ -17,14 +17,14 @@ from matplotlib.transforms import Bbox
 
 
 # =============================================================================
-# Load in data. Data available on request at https://doi.org/10.1093/jxb/erx052
+# Load in data
 # =============================================================================
 path     = ''
-filename = 'Loblolly_pine_BM_negative_removed.xlsx'
+filename = 'Urban_17_loblolly_raw.xlsx'
 
-df_wet     = pd.read_excel(path+filename, sheet_name = 'wet', header = 7, skiprows = [8,161,162,163,164,165,166,167,168,169,170])
-df_dry     = pd.read_excel(path+filename, sheet_name = 'dry', header = 7, skiprows = [8,99,100,101,102])
-df_wet_co2 = pd.read_excel(path+filename, sheet_name = 'wet+high CO2', header = 7, skiprows = [8])
+df_wet     = pd.read_excel(path+filename, sheet_name = 'wet' )
+df_dry     = pd.read_excel(path+filename, sheet_name = 'dry' )
+df_wet_co2 = pd.read_excel(path+filename, sheet_name = 'wet+high CO2' )
 df_all     = pd.concat( [ df_wet, df_dry, df_wet_co2 ], ignore_index = True )
 
 # =============================================================================
