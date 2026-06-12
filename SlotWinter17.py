@@ -18,11 +18,11 @@ from sklearn.metrics import r2_score
 
 
 # =============================================================================
-# Load in data. Data available on request at https://doi.org/10.1111/nph.14469
+# Load in data
 # =============================================================================
 path     = ''
-filename = 'SlotWinter2017_NewPhyt.Data.xlsx'
-df       = pd.read_excel(path+filename, sheet_name = 'SlotWinter_NP.data')
+filename = 'Slot_Winter_17_raw.csv'
+df       = pd.read_excel( path + filename )
 
 # =============================================================================
 # Set up namelists
