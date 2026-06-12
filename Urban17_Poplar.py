@@ -16,14 +16,14 @@ from scipy.optimize import curve_fit
 from matplotlib.transforms import Bbox
 
 # =============================================================================
-# Load in data. Data available on request at https://doi.org/10.1093/jxb/erx052
+# Load in data
 # =============================================================================
 path     = ''
-filename = 'Poplar_BM.xlsx'
+filename = 'Urban_17_poplar_raw.xlsx'
 
-df_wet     = pd.read_excel(path+filename, sheet_name = 'wet-ambient', header = 11, skiprows = [12])
-df_dry     = pd.read_excel(path+filename, sheet_name = 'dry', header = 11, skiprows = [12])
-df_wet_co2 = pd.read_excel(path+filename, sheet_name = 'wet-high CO2', header = 11, skiprows = [12])
+df_wet     = pd.read_excel(path+filename, sheet_name = 'wet-ambient' )
+df_dry     = pd.read_excel(path+filename, sheet_name = 'dry' )
+df_wet_co2 = pd.read_excel(path+filename, sheet_name = 'wet-high CO2' )
 df_all     = pd.concat( [ df_wet, df_dry, df_wet_co2 ], ignore_index = True )
 
 # =============================================================================
