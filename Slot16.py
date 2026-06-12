@@ -19,8 +19,8 @@ from matplotlib.transforms import Bbox
 # Load in data. Data available on request at https://doi.org/10.1071/FP15320
 # =============================================================================
 path     = ''
-filename = 'PhotosynthesisData_Slot_etal2016FPB.xlsx'
-df       = pd.read_excel(path+filename)
+filename = 'Slot_16_raw.csv'
+df       = pd.read_csv(path+filename)
 
 # =============================================================================
 # Set up namelists
