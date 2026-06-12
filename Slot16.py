@@ -16,7 +16,7 @@ from scipy.optimize import curve_fit
 from matplotlib.transforms import Bbox
 
 # =============================================================================
-# Load in data. Data available on request at https://doi.org/10.1071/FP15320
+# Load in data
 # =============================================================================
 path     = ''
 filename = 'Slot_16_raw.csv'
