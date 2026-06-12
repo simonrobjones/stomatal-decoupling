@@ -18,9 +18,9 @@ from matplotlib.transforms import Bbox
 # Load in data
 # =============================================================================
 file_path = ''
-file_name = 'Mdat+Meta_WarmSite_251217.csv'
+file_name = 'Taylor_ND_raw.csv'
 
-df = pd.read_csv(file_path  + file_name, parse_dates = True )
+df = pd.read_csv( file_path  + file_name )
 
 # =============================================================================
 # Set up namelists
@@ -29,12 +29,11 @@ nl = namelist()
 pc = physical_constants()
 
 
-unique_measurements_total = df['m.id'].unique()
+
 unique_species = df['sp.scr'].unique()
 N_species      = len(unique_species)
 
 use_species = unique_species
-use_species = unique_species[[0,2,4]]
 N_species   = len(use_species)
 
 df_a = df[ ['A','gsw','Meas.Tair','Tleaf','VPDleaf',
