@@ -19,8 +19,8 @@ from matplotlib.transforms import Bbox
 # Load in data. Data available on request at https://doi.org/10.1016/j.envexpbot.2023.105295
 # =============================================================================
 path           = ''
-filename       = 'Feng_etal2023_TempResponseData.xlsx'
-df             = pd.read_excel( path + filename )
+filename       = 'Feng_23_raw.csv'
+df             = pd.read_csv( path + filename )
 unique_species = df['species'].unique()
 
 # =============================================================================
