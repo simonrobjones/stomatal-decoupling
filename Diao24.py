@@ -17,7 +17,7 @@ from matplotlib.transforms import Bbox
 
 
 # =============================================================================
-# Load in data. Data available on request at https://doi.org/10.1111/nph.19558
+# Load in data
 # =============================================================================
 file_name = 'Diao_24_raw.csv'
 file_path = ''
