@@ -16,7 +16,7 @@ from scipy.optimize import curve_fit
 from matplotlib.transforms import Bbox
 
 # =============================================================================
-# Load in data. Data available on request at https://doi.org/10.1016/j.envexpbot.2023.105295
+# Load in data
 # =============================================================================
 path           = ''
 filename       = 'Feng_23_raw.csv'
